@@ -63,4 +63,3 @@ app.post("/api/generate-video", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Altheeb AI Backend (Gemini) running on port ${PORT}`);
 });
-
