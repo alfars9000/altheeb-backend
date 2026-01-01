@@ -65,7 +65,15 @@ app.post("/api/generate-video", async (req, res) => {
       videoUrl: null
     });
   } catch (error) {
-    console.error("DeepSeek Error:", error);
+   console.error("DeepSeek Error:", error);
+res.status(500).json({
+  status: "error",
+  message: "DeepSeek Error Details",
+  error: error.message,
+  script: null,
+  videoUrl: null,
+});
+return;
 
     res.status(500).json({
       status: "error",
@@ -79,3 +87,4 @@ app.post("/api/generate-video", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Altheeb AI Backend (DeepSeek) running on port ${PORT}`);
 });
+
