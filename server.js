@@ -1,8 +1,14 @@
 import express from "express";
 import cors from "cors";
+import OpenAI from "openai";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// إعداد OpenAI من متغير البيئة
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
 
 app.use(cors());
 app.use(express.json());
@@ -11,18 +17,52 @@ app.get("/", (req, res) => {
   res.send("Altheeb AI Backend is running...");
 });
 
-app.post("/api/generate-video", async (req, res) => {
-  const { duration, language, contentType, voiceTone, uploadYT } = req.body;
+// دالة توليد نص الفيديو
+async function generateScript({ duration, language, contentType, voiceTone }) {
+  const prompt = `
+اكتب نص فيديو مدته تقريبًا ${duration} دقيقة.
+اللغة: ${language}.
+نوع المحتوى: ${contentType}.
+نبرة الصوت: ${voiceTone}.
+اجعل النص احترافي، واضح، ومناسب للنشر كفيديو.
+`;
 
-  console.log("New request:", { duration, language, contentType, voiceTone, uploadYT });
-
-  // هنا لاحقًا نربط الذكاء الاصطناعي الحقيقي
-  // الآن نرجع رابط وهمي للتجربة
-  res.json({
-    status: "success",
-    message: "تم استقبال الطلب بنجاح من الذئب AI",
-    videoUrl: "https://example.com/fake-video.mp4"
+  const completion = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      { role: "system", content: "أنت مساعد خبير في كتابة سكربتات فيديو عربية احترافية." },
+      { role: "user", content: prompt }
+    ]
   });
+
+  return completion.choices[0].message.content;
+}
+
+// نقطة API الرئيسية
+app.post("/api/generate-video", async (req, res) => {
+  try {
+    const { duration, language, contentType, voiceTone, uploadYT } = req.body;
+
+    console.log("New request:", { duration, language, contentType, voiceTone, uploadYT });
+
+    // توليد نص الفيديو
+    const script = await generateScript({ duration, language, contentType, voiceTone });
+
+    // لاحقًا: توليد صوت + فيديو + رفع لليوتيوب
+    // الآن نرجع النص فقط + رابط فيديو وهمي
+    res.json({
+      status: "success",
+      message: "تم توليد نص الفيديو بنجاح من الذئب AI",
+      script: script,
+      videoUrl: "https://example.com/fake-video.mp4"
+    });
+  } catch (error) {
+    console.error("Error in /api/generate-video:", error);
+    res.status(500).json({
+      status: "error",
+      message: "حدث خطأ أثناء توليد نص الفيديو"
+    });
+  }
 });
 
 app.listen(PORT, () => {
