@@ -28,7 +28,7 @@ async function generateScript({ duration, language, contentType, voiceTone }) {
 `;
 
   const completion = await client.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-4o",
     messages: [
       { role: "system", content: "أنت مساعد خبير في كتابة سكربتات فيديو عربية احترافية." },
       { role: "user", content: prompt }
@@ -43,13 +43,12 @@ app.post("/api/generate-video", async (req, res) => {
   try {
     const { duration, language, contentType, voiceTone, uploadYT } = req.body;
 
-    console.log("New request:", { duration, language, contentType, voiceTone, uploadYT });
+    console.log("طلب جديد:", { duration, language, contentType, voiceTone, uploadYT });
 
     // توليد نص الفيديو
     const script = await generateScript({ duration, language, contentType, voiceTone });
 
-    // لاحقًا: توليد صوت + فيديو + رفع لليوتيوب
-    // الآن نرجع النص فقط + رابط فيديو وهمي
+    // رد ناجح
     res.json({
       status: "success",
       message: "تم توليد نص الفيديو بنجاح من الذئب AI",
@@ -57,10 +56,13 @@ app.post("/api/generate-video", async (req, res) => {
       videoUrl: "https://example.com/fake-video.mp4"
     });
   } catch (error) {
-    console.error("Error in /api/generate-video:", error);
+    console.error("خطأ أثناء توليد النص:", error.message);
+
     res.status(500).json({
       status: "error",
-      message: "حدث خطأ أثناء توليد نص الفيديو"
+      message: "حدث خطأ أثناء توليد نص الفيديو",
+      script: null,
+      videoUrl: null
     });
   }
 });
