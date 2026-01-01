@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
 
 // توليد نص الفيديو باستخدام Gemini
 async function generateScript({ duration, language, contentType, voiceTone }) {
-  const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   const prompt = `
 اكتب نص فيديو مدته تقريبًا ${duration} دقيقة.
@@ -63,3 +63,4 @@ app.post("/api/generate-video", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Altheeb AI Backend (Gemini) running on port ${PORT}`);
 });
+
