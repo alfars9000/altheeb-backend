@@ -46,7 +46,7 @@ app.post("/api/generate-video", async (req, res) => {
       status: "success",
       message: "تم توليد نص الفيديو بنجاح باستخدام Gemini",
       script: script,
-      videoUrl: null, // نضيف لاحقًا
+      videoUrl: null
     });
   } catch (error) {
     console.error("Gemini Error:", error);
