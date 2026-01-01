@@ -1,24 +1,21 @@
 import express from "express";
 import cors from "cors";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import fetch from "node-fetch";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 app.use(cors());
 app.use(express.json());
 
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
+
 app.get("/", (req, res) => {
-  res.send("Altheeb AI Backend (Gemini Version) is running...");
+  res.send("Altheeb AI Backend (DeepSeek Version) is running...");
 });
 
-// توليد نص الفيديو باستخدام Gemini
+// توليد نص الفيديو باستخدام DeepSeek
 async function generateScript({ duration, language, contentType, voiceTone }) {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
   const prompt = `
 اكتب نص فيديو مدته تقريبًا ${duration} دقيقة.
 اللغة: ${language}.
@@ -27,8 +24,27 @@ async function generateScript({ duration, language, contentType, voiceTone }) {
 اجعل النص احترافي، واضح، ومناسب للنشر كفيديو.
 `;
 
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+  const response = await fetch("https://api.deepseek.com/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: "deepseek-chat",
+      messages: [
+        { role: "user", content: prompt }
+      ]
+    })
+  });
+
+  const data = await response.json();
+
+  if (!data.choices || !data.choices[0]) {
+    throw new Error("DeepSeek API returned an invalid response");
+  }
+
+  return data.choices[0].message.content;
 }
 
 app.post("/api/generate-video", async (req, res) => {
@@ -44,12 +60,12 @@ app.post("/api/generate-video", async (req, res) => {
 
     res.json({
       status: "success",
-      message: "تم توليد نص الفيديو بنجاح باستخدام Gemini",
+      message: "تم توليد نص الفيديو بنجاح باستخدام DeepSeek",
       script: script,
       videoUrl: null
     });
   } catch (error) {
-    console.error("Gemini Error:", error);
+    console.error("DeepSeek Error:", error);
 
     res.status(500).json({
       status: "error",
@@ -61,5 +77,5 @@ app.post("/api/generate-video", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Altheeb AI Backend (Gemini) running on port ${PORT}`);
+  console.log(`Altheeb AI Backend (DeepSeek) running on port ${PORT}`);
 });
